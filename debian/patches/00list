@@ -8,6 +8,3 @@
 903_rdoc_documents.dpatch
 090613_exclude_rdoc.dpatch
 090812_openssl_x509_warning
-# Back ported patch or fixes before the upstream's new release
-091125_gc_check
-100312_timeout-fix.dpatch
