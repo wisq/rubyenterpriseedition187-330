@@ -9,7 +9,6 @@ ruby_archdir = usr/lib/ruby/$(ruby_ver)/$(arch_name)
 bin_dir = usr/bin
 man_dir = usr/share/man/man1
 
-el_dir = usr/share/emacs/site-lisp/ruby$(ruby_ver)-elisp
 el_etc = etc/emacs/site-start.d
 
 examples_dir = $(CURDIR)/debian/ruby$(ruby_ver)-examples/usr/share/doc/ruby$(ruby_ver)-examples/examples
@@ -17,8 +16,6 @@ examples_dir = $(CURDIR)/debian/ruby$(ruby_ver)-examples/usr/share/doc/ruby$(rub
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/cdbs/1/class/autotools.mk
-include /usr/share/cdbs/1/rules/dpatch.mk
-include /usr/share/dpatch/dpatch.make
 
 DEB_AUTO_UPDATE_AUTOCONF = YES
 
@@ -28,13 +25,20 @@ ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -g -O0
 else
 	CFLAGS += -g -O2
+# Workaround for #634260. Can be removed when #635126 is fixed.
+ifeq ($(DEB_BUILD_ARCH),armel)
+	CFLAGS += -fno-tree-sra
+endif
 endif
 
-ifeq ($(DEB_BUILD_GNU_CPU),i386)
+ifneq (,$(filter $(DEB_BUILD_GNU_CPU),i386 i486 i586 i686))
 	DEB_CONFIGURE_USER_FLAGS += --enable-frame-address
 endif
-ifneq (,$(filter $(DEB_BUILD_GNU_CPU),i486 i586 i686))
-	DEB_CONFIGURE_USER_FLAGS += --enable-frame-address
+ifeq ($(DEB_BUILD_GNU_CPU),i686)
+	DEB_CONFIGURE_USER_FLAGS += --with-extra-site-search-path='/usr/local/lib/site_ruby/$(ruby_ver)/i486-linux'
+	DEB_CONFIGURE_USER_FLAGS += --with-extra-search-path='/usr/lib/ruby/$(ruby_ver)/i486-linux'
+endif
+ifeq ($(DEB_BUILD_GNU_CPU),i486)
 	DEB_CONFIGURE_USER_FLAGS += --with-extra-site-search-path='/usr/local/lib/site_ruby/$(ruby_ver)/i386-linux'
 	DEB_CONFIGURE_USER_FLAGS += --with-extra-search-path='/usr/lib/ruby/$(ruby_ver)/i386-linux'
 endif
@@ -42,7 +46,6 @@ DEB_CONFIGURE_USER_FLAGS += --program-suffix=$(ruby_ver)
 DEB_CONFIGURE_USER_FLAGS += --enable-pthread
 DEB_CONFIGURE_USER_FLAGS += --enable-shared
 DEB_CONFIGURE_USER_FLAGS += --enable-ipv6
-DEB_CONFIGURE_USER_FLAGS += --with-lookup-order-hack=INET
 DEB_CONFIGURE_USER_FLAGS += --disable-rpath
 DEB_CONFIGURE_USER_FLAGS += --disable-install-doc
 DEB_CONFIGURE_USER_FLAGS += --with-sitedir='/usr/local/lib/site_ruby'
@@ -56,31 +59,12 @@ DEB_CONFIGURE_USER_FLAGS += --with-bundled-md5
 DEB_CONFIGURE_USER_FLAGS += --with-bundled-rmd160
 
 DEB_MAKE_BUILD_TARGET = all test
-#DEB_MAKE_BUILD_TARGET = all test test-all
 
-DEB_INSTALL_DIRS_ruby$(ruby_ver)-elisp += $(el_dir)
-DEB_INSTALL_DIRS_ruby$(ruby_ver)-elisp += $(el_etc)
-DEB_INSTALL_DOCS_ruby$(ruby_ver)-elisp += $(DEB_SRCDIR)/misc/README
+common-post-build-arch::
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	-make test-all
+endif
 
-DEB_INSTALL_DIRS_ri$(ruby_ver) += $(bin_dir)
-DEB_INSTALL_DIRS_ri$(ruby_ver) += $(man_dir)
-DEB_INSTALL_MANPAGES_ri$(ruby_ver) += debian/ri$(ruby_ver).1
-
-DEB_INSTALL_DIRS_rdoc$(ruby_ver) += $(bin_dir)
-DEB_INSTALL_DIRS_rdoc$(ruby_ver) += $(man_dir)
-DEB_INSTALL_DIRS_rdoc$(ruby_ver) += $(ruby_libdir)
-DEB_INSTALL_DOCS_rdoc$(ruby_ver) += $(DEB_SRCDIR)/lib/rdoc/README
-DEB_INSTALL_MANPAGES_rdoc$(ruby_ver) += debian/rdoc$(ruby_ver).1
-
-DEB_INSTALL_DIRS_irb$(ruby_ver) += $(bin_dir)
-DEB_INSTALL_DIRS_irb$(ruby_ver) += $(man_dir)
-DEB_INSTALL_DIRS_irb$(ruby_ver) += $(ruby_libdir)
-DEB_INSTALL_DOCS_irb$(ruby_ver) += $(DEB_SRCDIR)/doc/irb/*
-DEB_INSTALL_MANPAGES_irb$(ruby_ver) += debian/irb$(ruby_ver).1
-
-DEB_INSTALL_DOCS_libgdbm-ruby$(ruby_ver) += $(DEB_SRCDIR)/ext/gdbm/README*
-
-DEB_INSTALL_DOCS_libreadline-ruby$(ruby_ver) += $(DEB_SRCDIR)/ext/readline/README*
 
 DEB_INSTALL_DOCS_libtcltk-ruby$(ruby_ver) += $(DEB_SRCDIR)/ext/tk/README*
 DEB_INSTALL_DOCS_libtcltk-ruby$(ruby_ver) += $(DEB_SRCDIR)/ext/tk/MANUAL*
@@ -96,6 +80,9 @@ DEB_INSTALL_DOCS_ruby$(ruby_ver) += $(DEB_SRCDIR)/NEWS
 DEB_INSTALL_DOCS_ruby$(ruby_ver) += $(DEB_SRCDIR)/doc/NEWS-1.8.0
 DEB_INSTALL_MANPAGES_ruby$(ruby_ver) += debian/testrb$(ruby_ver).1
 DEB_INSTALL_MANPAGES_ruby$(ruby_ver) += debian/erb$(ruby_ver).1
+DEB_INSTALL_MANPAGES_ruby$(ruby_ver) += debian/rdoc$(ruby_ver).1
+DEB_INSTALL_MANPAGES_ruby$(ruby_ver) += debian/irb$(ruby_ver).1
+DEB_INSTALL_MANPAGES_ruby$(ruby_ver) += debian/ri$(ruby_ver).1
 
 DEB_INSTALL_DOCS_libruby$(ruby_ver) += $(DEB_SRCDIR)/lib/README
 DEB_INSTALL_DOCS_libruby$(ruby_ver) += $(DEB_SRCDIR)/NEWS
@@ -108,27 +95,6 @@ DEB_INSTALL_DOCS_ruby$(ruby_ver)-dev += $(DEB_SRCDIR)/README.EXT*
 DEB_COMPRESS_EXCLUDE = .rb .pl .py .scm .awk .dat
 DEB_SHLIBDEPS_INCLUDE = $(CURDIR)/debian/libruby$(ruby_ver)/usr/lib
 DEB_DH_MAKESHLIBS_ARGS_ALL = -m$(ruby_ver) -V
-
-binary-install/libdbm-ruby$(ruby_ver) \
-binary-install/libgdbm-ruby$(ruby_ver) \
-binary-install/libreadline-ruby$(ruby_ver) \
-binary-install/libopenssl-ruby$(ruby_ver)::
-	dh_movefiles -p$(cdbs_curpkg) \
-	    $(ruby_archdir)/$(patsubst lib%-ruby$(ruby_ver),%,$(cdbs_curpkg)).so
-	sh $(CURDIR)/debian/extfixup_rubylibs.sh $(cdbs_curpkg) \
-	    $(DEB_SRCDIR)/ext/$(patsubst lib%-ruby$(ruby_ver),%,$(cdbs_curpkg))
-	sh $(CURDIR)/debian/extfixup_examples.sh $(cdbs_curpkg) \
-	    $(DEB_SRCDIR)/ext/$(patsubst lib%-ruby$(ruby_ver),%,$(cdbs_curpkg))
-binary-install/libopenssl-ruby$(ruby_ver)::
-	dh_movefiles -p$(cdbs_curpkg) \
-	    usr/lib/ruby/$(ruby_ver)/drb/ssl.rb \
-	    usr/lib/ruby/$(ruby_ver)/net/https.rb \
-	    usr/lib/ruby/$(ruby_ver)/webrick/ssl.rb
-	install -d \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/examples
-	(cd $(DEB_SRCDIR)/sample/openssl && \
-	 tar cf - .) | \
-	  (cd $(CURDIR)/debian/$(cdbs_curpkg)/usr/share/doc/$(cdbs_curpkg)/examples && tar xf -)
 
 binary-install/libtcltk-ruby$(ruby_ver)::
 	dh_movefiles -p$(cdbs_curpkg) \
@@ -171,7 +137,7 @@ binary-install/libruby$(ruby_ver):: $(patsubst %,binary-install/%,$(filter-out l
 	cd $(DEB_SRCDIR)/ext && \
 	for dir in \
 	    bigdecimal curses digest dl enumerator etc \
-	    fcntl iconv io nkf pty racc sdbm socket \
+	    fcntl iconv io nkf pty racc readline openssl sdbm socket \
 	    stringio strscan syck syslog thread zlib \
 	    ; \
 	do \
@@ -203,33 +169,15 @@ binary-install/ruby$(ruby_ver)::
 	    usr/bin/ruby$(ruby_ver) \
 	    usr/bin/erb$(ruby_ver) \
 	    usr/bin/testrb$(ruby_ver) \
+	    usr/bin/rdoc$(ruby_ver) \
+	    usr/bin/irb$(ruby_ver) \
+	    usr/bin/ri$(ruby_ver) \
 	    usr/share/man/man1/ruby$(ruby_ver).1
 
-binary-post-install/ruby$(ruby_ver)-elisp::
-	install -m444 $(DEB_SRCDIR)/misc/*.el \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/$(el_dir)
-
-binary-install/ri$(ruby_ver)::
-	dh_movefiles -p$(cdbs_curpkg) $(bin_dir)/$(cdbs_curpkg)
 binary-post-install/ri$(ruby_ver)::
+ifeq (,$(filter nordoc,$(DEB_BUILD_OPTIONS)))
 	$(DEB_MAKE_INVOKE) install-doc DESTDIR=$(CURDIR)/debian/$(cdbs_curpkg)
-	install -m444 $(CURDIR)/debian/$(cdbs_curpkg).1 \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/$(man_dir)/$(cdbs_curpkg).1
-
-binary-install/rdoc$(ruby_ver)::
-	dh_movefiles -p$(cdbs_curpkg) \
-	    $(bin_dir)/$(cdbs_curpkg) \
-	    $(ruby_libdir)/rdoc
-binary-post-install/rdoc$(ruby_ver)::
-	install -m444 $(CURDIR)/debian/$(cdbs_curpkg).1 \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/$(man_dir)/$(cdbs_curpkg).1
-
-binary-install/irb$(ruby_ver)::
-	dh_movefiles -p$(cdbs_curpkg) $(bin_dir)/$(cdbs_curpkg) \
-	    $(ruby_libdir)/irb.rb $(ruby_libdir)/irb
-binary-post-install/irb$(ruby_ver)::
-	install -m444 $(CURDIR)/debian/$(cdbs_curpkg).1 \
-	    $(CURDIR)/debian/$(cdbs_curpkg)/$(man_dir)/$(cdbs_curpkg).1
+endif
 
 binary-post-install/ruby$(ruby_ver)-examples::
 	install -d $(examples_dir)/bigdecimal
@@ -261,7 +209,6 @@ binary-post-install/ruby$(ruby_ver)-examples::
 
 	(cd $(DEB_SRCDIR)/sample && tar cf - .) | \
 	  (cd $(examples_dir) && tar xf -)
-	cd $(examples_dir) && rm -rf openssl
 
 $(patsubst %,binary-post-install/%,$(DEB_PACKAGES))::
 	bash $(CURDIR)/debian/fixshebang.sh ruby$(ruby_ver) \
@@ -289,3 +236,20 @@ clean::
 	    mv $(DEB_SRCDIR)/config.sub.cdbs-orig \
 		$(DEB_SRCDIR)/config.sub; \
 	fi
+
+PACKAGE = ruby1.8
+SRC_VERSION := $(shell dpkg-parsechangelog | sed -ne 's/^Version: \(\([0-9]\+\):\)\?\(.*\)-.*/\3/p')
+SVN_REVISION := $(shell echo $(SRC_VERSION) | awk -F"+" '{ print $$2 }' | sed 's/svn//' )
+TARBALL = $(PACKAGE)_$(SRC_VERSION).orig.tar.gz
+.PHONY: get-orig-source check-orig-source
+get-orig-source:
+	rm -rf get-orig-source $(TARBALL)
+	mkdir get-orig-source
+	svn export -r $(SVN_REVISION) http://svn.ruby-lang.org/repos/ruby/branches/ruby_1_8_7 \
+	get-orig-source/$(PACKAGE)-$(SRC_VERSION).orig
+	GZIP=--best tar czf $(TARBALL) -C get-orig-source $(PACKAGE)-$(SRC_VERSION).orig
+	rm -rf get-orig-source
+	echo "  "$(TARBALL)" created; move it to the right destination to build the package"
+
+check-orig-source:
+	svn log http://svn.ruby-lang.org/repos/ruby/branches/ruby_1_8_7 | head -20

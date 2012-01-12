@@ -1,3 +1,161 @@
+ruby1.8 (1.8.7.352-2) unstable; urgency=low
+
+  * Add -fno-tree-sra on armel. Workaround that Closes: #634260
+
+ -- Lucas Nussbaum <lucas@debian.org>  Sun, 24 Jul 2011 12:30:48 +0200
+
+ruby1.8 (1.8.7.352-1) unstable; urgency=low
+
+  * New upstream release.
+    + debian/patches/110411_disable_osslv2.patch: not needed anymore
+  * Backport r30993 from the ruby_1.9 branch to fix CVE-2011-0188.
+    Closes: #628452
+  * Build-depend on tcl-dev and tk-dev instead of 8.4.
+  * Add debian/patches/tcltk-no-rpath.patch: disable rpath in
+    the tcltk extension.
+
+ -- Lucas Nussbaum <lucas@debian.org>  Sun, 03 Jul 2011 19:00:52 +0200
+
+ruby1.8 (1.8.7.334+svn31904-1) experimental; urgency=low
+
+  * new upstream snapshot from SVN revision 31904.
+  * Update Lucas' email address.
+  * Bump Standards-Version to 3.9.2. No changes needed.
+
+ -- Lucas Nussbaum <lucas@debian.org>  Wed, 15 Jun 2011 11:47:48 +0200
+
+ruby1.8 (1.8.7.334-5) unstable; urgency=low
+
+  * Build depend on libreadline-gplv2-dev instead of libreadline5-dev. Ruby
+    is dual-licensed under GPLv2 (only) || Ruby license, so we cannot use
+    libreadline6-dev. Closes: #625855
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Sun, 15 May 2011 10:49:09 +0200
+
+ruby1.8 (1.8.7.334-4) unstable; urgency=low
+
+  * Drop ruby1.8-elisp. The Ruby emacs mode is now provided in emacs 23.
+    All the open bugs were mentioned to an upstream developer, who fixed the
+    ones that still affected ruby-mode.
+    Closes: #502926, #527266, #192647, #282796, #366045, #373199, #411173.
+    Closes: #468952, #619754, #489355.
+  * Add patch 110411_disable_osslv2.patch
+    Disables SSLv2. Closes: #621509
+  * Move the ri1.8 binary and manpage to the ruby1.8 package. ri1.8 still
+    exists, but only contains the documentation. This is needed to
+    Closes: #621058.
+  * Make libruby1.8 Conflict, Replace irb1.8, rdoc1.8. Closes: #608582
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Tue, 12 Apr 2011 11:50:53 +0200
+
+ruby1.8 (1.8.7.334-3) unstable; urgency=low
+
+  * Remove --with-lookup-order-hack=INET. That breaks IPv6-only systems.
+    Closes: #619209
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Fri, 25 Mar 2011 15:48:05 +0100
+
+ruby1.8 (1.8.7.334-2) unstable; urgency=low
+
+  * Switch to git. Update Vcs-* fields.
+  * Upload to unstable.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Fri, 25 Mar 2011 10:07:59 +0100
+
+ruby1.8 (1.8.7.334-2~experimental.1) experimental; urgency=low
+
+  * Switch to dpkg-source 3.0 (quilt) format
+  * Add a 'nordoc' option for DEB_BUILD_OPTIONS
+  * Switch to alternatives to manage ruby, rdoc, ri, ...
+  * Add a ruby1.8-full metapackage.
+  * Upload to experimental. Changes are very intrusive and need
+    extensive testing.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Sat, 05 Mar 2011 20:43:46 +0100
+
+ruby1.8 (1.8.7.334-1) unstable; urgency=low
+
+  * New upstream release. (Closes: #615279)
+    - (CVE-2011-1005; Closes: #615517)
+    - (CVE-2011-1004; Closes: #615518)
+
+ -- Daigo Moriwaki <daigo@debian.org>  Sun, 27 Feb 2011 13:12:03 +0900
+
+ruby1.8 (1.8.7.302-2) unstable; urgency=high
+
+  * Add debian/patches/100901_threading_fixes.patch. Fixes threading
+    problems on Debian GNU/kFreeBSD exhibited by puppet.
+    Thanks to Petr Salinger and Aurélien Jarno. Closes: #595034
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Wed, 01 Sep 2010 12:08:48 +0200
+
+ruby1.8 (1.8.7.302-1) unstable; urgency=high
+
+  * New upstream release in the stable 1.8.7 branch (very minor changes only).
+    + Fixes CVE-2010-0541.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Mon, 16 Aug 2010 11:23:16 +0200
+
+ruby1.8 (1.8.7.299-2) unstable; urgency=low
+
+  * Convert from dpatch to quilt using dpatch2quilt.sh
+  * Add patch 100730_disable_getsetcontext_on_nptl: disable getsetcontext on
+    NPTL. LP: #307462, Closes: #579229
+  * Added 100730_verbose-tests.patch: run tests in verbose mode.
+  * Run make test-all, but do not consider failures fatal for now.
+  * Upgrade to Standards-Version: 3.9.1. No changes needed.
+  * Deal with Ubuntu changing the GCC target to i686-linux-gnu: search
+    for libs in i486-linux too. LP: #611322.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Fri, 30 Jul 2010 17:45:14 -0400
+
+ruby1.8 (1.8.7.299-1) unstable; urgency=low
+
+  * New upstream release
+  * Removed patches that the upstrem has applied:
+    - debian/patches/100312_timeout-fix.dpatch
+    - debian/patches/100620_fix_pathname_warning.dpatch
+    - debian/patches/100620_fix_super_called_outside_of_method.dpatch
+
+ -- Daigo Moriwaki <daigo@debian.org>  Sun, 27 Jun 2010 22:16:44 +0900
+
+ruby1.8 (1.8.7.249-4) unstable; urgency=low
+
+  [ Lucas Nussbaum ]
+  * Make ruby1.8 depend on exactly the same version of libruby1.8 after
+    private discussion with Alex Legler. This avoids confusing situations
+    for users.
+  * Update debian/patches/100312_timeout-fix.dpatch after discussion with
+    Petr Salinger. Treat FreeBSD the same as Linux. Closes: #580464
+
+  [ Daigo Moriwaki ]
+  * Removed debian/patches/091125_gc_check.dpatch, which the upstream has
+    applied. (Closes: #586374)
+  * Added debian/patches/100620_fix_pathname_warning.dpatch, which was
+    backported from the upstream r23485. 
+    (Closes: #566611)
+  * Added debian/patches/100620_fix_super_called_outside_of_method.dpatch,
+    which was backported from the upstream r26534:26536. (Closes: #568597)
+
+ -- Daigo Moriwaki <daigo@debian.org>  Sun, 20 Jun 2010 17:30:27 +0900
+
+ruby1.8 (1.8.7.249-3) unstable; urgency=low
+
+  * Fix sections. Agree with ftpmasters.
+  * Update debian/copyright. Clarify that Ruby is GPLv2, not just "GPL".
+  * Merge lib{dbm,gdbm,readline,openssl}-ruby1.8 into libruby1.8.
+  * Merge irb1.8 and rdoc1.8 into ruby1.8.
+  * Update lintian override.
+  * Update debian/copyright.
+  * Upgrade to Standards-Version: 3.8.4. No changes needed.
+  * Add README.source.
+  * Fix not-binnmuable-all-depends-any lintian warning.
+  * Add lintian override for package-name-doesnt-match-sonames.
+  * Remove duplicate section/priority stanzas.
+  * Fix a few minor problems in manpages.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Tue, 23 Mar 2010 13:21:22 +0100
+
 ruby1.8 (1.8.7.249-2) unstable; urgency=low
 
   * Add 100312_timeout-fix.dpatch: Backport upstream change to fix
